@@ -47,7 +47,7 @@ spec:
               cpu: 10m
           volumeMounts:
             - name: jokes
-              mountPath: /work/jokes.yaml
+              mountPath: /work/jokes.json
       volumes:
         - name: jokes
           configMap:

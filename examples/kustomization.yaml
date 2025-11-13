@@ -6,4 +6,4 @@ resources:
 configMapGenerator:
   - name: randomapi-jokes
     files:
-      - jokes.jsony
+      - jokes.json
