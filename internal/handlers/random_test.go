@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/gi8lino/randomapi/internal/data"
-	"github.com/gi8lino/randomapi/internal/handers"
+	"github.com/gi8lino/randomapi/internal/handlers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

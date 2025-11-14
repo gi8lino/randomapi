@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gi8lino/randomapi/internal/data"
-	"github.com/gi8lino/randomapi/internal/handers"
+	"github.com/gi8lino/randomapi/internal/handlers"
 )
 
 // NewRouter creates and wires the HTTP mux with handlers and middleware;
