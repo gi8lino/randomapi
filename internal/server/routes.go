@@ -23,7 +23,7 @@ func NewRouter(
 	root.Handle("POST /healthz", handlers.Healthz())
 
 	// Random element endpoint.
-	root.Handle("GET /random", handlers.RandomElement(elements))
+	root.Handle("GET /random", handlers.RandomElement(elements, logger))
 
 	// Mount the whole app under the prefix if provided.
 	var handler http.Handler = root

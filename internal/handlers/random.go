@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log/slog"
 	"math/rand"
 	"net/http"
 	"time"
@@ -15,6 +16,7 @@ var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 // from the provided in-memory list.
 func RandomElement(
 	elements data.Elements,
+	logger *slog.Logger,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if len(elements) == 0 {
@@ -23,6 +25,7 @@ func RandomElement(
 		}
 
 		elem := elements[rnd.Intn(len(elements))]
+		logger.Debug("random element", "element", string(elem))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

@@ -14,8 +14,12 @@ const (
 )
 
 // SetupLogger configures a structured logger with the specified format and debug mode.
-func SetupLogger(format LogFormat, output io.Writer) *slog.Logger {
+func SetupLogger(format LogFormat, debug bool, output io.Writer) *slog.Logger {
 	handlerOpts := &slog.HandlerOptions{}
+
+	if debug {
+		handlerOpts.Level = slog.LevelDebug
+	}
 
 	var handler slog.Handler
 	switch format {

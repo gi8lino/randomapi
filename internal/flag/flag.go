@@ -14,6 +14,7 @@ import (
 type Config struct {
 	ListenAddr  string            // HTTP bind address (e.g. ":8080")
 	LogFormat   logging.LogFormat // Log output format (text or json)
+	Debug       bool              // Enable debug mode
 	RoutePrefix string            // Canonical path prefix ("" or "/random-api")
 	DataPath    string            // Path to JSON file with elements
 }
@@ -46,6 +47,9 @@ func ParseArgs(version string, args []string, out io.Writer) (Config, error) {
 	logFormat := tf.String("log-format", "text", "Log format").
 		Choices("text", "json").
 		Short("l").
+		Value()
+	tf.BoolVar(&cfg.Debug, "debug", false, "Enable debug mode.").
+		Short("d").
 		Value()
 
 	// Parse

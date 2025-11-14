@@ -15,7 +15,7 @@ func TestSetupLogger(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		logger := SetupLogger(LogFormatJSON, &buf)
+		logger := SetupLogger(LogFormatJSON, false, &buf)
 
 		logger.Info("test message", "key", "value")
 
@@ -31,7 +31,7 @@ func TestSetupLogger(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		logger := SetupLogger(LogFormatText, &buf)
+		logger := SetupLogger(LogFormatText, false, &buf)
 
 		logger.Info("hello world", "foo", "bar")
 
@@ -45,7 +45,7 @@ func TestSetupLogger(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		logger := SetupLogger("invalid", &buf)
+		logger := SetupLogger("invalid", false, &buf)
 
 		logger.Info("fallback check", "k", "v")
 
@@ -54,5 +54,17 @@ func TestSetupLogger(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, "fallback check", logEntry["msg"])
+	})
+
+	t.Run("Debug level", func(t *testing.T) {
+		t.Parallel()
+
+		var buf bytes.Buffer
+		logger := SetupLogger(LogFormatText, true, &buf)
+
+		logger.Debug("debug enabled", "foo", "bar")
+
+		logOutput := buf.String()
+		assert.Contains(t, logOutput, `level=DEBUG msg="debug enabled" foo=bar`)
 	})
 }

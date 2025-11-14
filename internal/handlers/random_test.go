@@ -1,8 +1,10 @@
 package handlers_test
 
 import (
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gi8lino/randomapi/internal/data"
@@ -13,6 +15,9 @@ import (
 
 func TestRandomElement(t *testing.T) {
 	t.Parallel()
+
+	var buf strings.Builder
+	logger := slog.New(slog.NewTextHandler(&buf, nil))
 
 	t.Run("returns random element with correct headers", func(t *testing.T) {
 		t.Parallel()
@@ -26,7 +31,7 @@ func TestRandomElement(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/random", nil)
 		w := httptest.NewRecorder()
 
-		handler := handlers.RandomElement(elements)
+		handler := handlers.RandomElement(elements, logger)
 		handler.ServeHTTP(w, req)
 
 		res := w.Result()
@@ -54,7 +59,7 @@ func TestRandomElement(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/random", nil)
 		w := httptest.NewRecorder()
 
-		handler := handlers.RandomElement(elements)
+		handler := handlers.RandomElement(elements, logger)
 		handler.ServeHTTP(w, req)
 
 		res := w.Result()

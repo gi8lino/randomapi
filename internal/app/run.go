@@ -34,13 +34,14 @@ func Run(ctx context.Context, version string, argv []string, output io.Writer) e
 	}
 
 	// Setup logger
-	logger := logging.SetupLogger(cfg.LogFormat, output)
+	logger := logging.SetupLogger(cfg.LogFormat, cfg.Debug, output)
 
 	// Load data elements from JSON file
 	elements, err := data.LoadElements(cfg.DataPath)
 	if err != nil {
 		return fmt.Errorf("load elements: %w", err)
 	}
+	logger.Debug("loaded elements", "count", len(elements))
 
 	// Create server and run forever
 	router := server.NewRouter(logger, cfg.RoutePrefix, elements)

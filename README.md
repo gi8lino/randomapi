@@ -32,6 +32,7 @@ Flags always take precedence over env vars.
 | `--listen-address` | string | `:8080`          | HTTP listen address for `/random` and `/healthz`.                           |
 | `--route-prefix`   | string | _(empty)_        | Optional URL prefix to mount all endpoints under (e.g. `/api`).             |
 | `--log-format`     | string | `text`           | Logging format: `text` or `json`.                                           |
+| `--debug`          | bool   | `false`          | Enable debug mode.                                                          |
 
 ### Environment Variables
 
