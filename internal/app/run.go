@@ -24,6 +24,10 @@ func Run(ctx context.Context, version string, argv []string, output io.Writer) e
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
+	// Create another context to listen for reload signals
+	reloadCh := make(chan os.Signal, 1)
+	signal.Notify(reloadCh, syscall.SIGHUP)
+
 	// Parse command-line flags
 	cfg, err := flag.ParseArgs(version, argv, output)
 	if err != nil {
@@ -56,8 +60,13 @@ func Run(ctx context.Context, version string, argv []string, output io.Writer) e
 
 	logger.Debug("loaded elements", "count", len(elements))
 
+	store := data.NewElementsStore(elements)
+
+	reloadFn := data.NewReloadFuncWithStore(cfg.DataPath, logger, store)
+	go data.WatchReload(ctx, reloadCh, logger, reloadFn)
+
 	// Create server and run forever
-	router := server.NewRouter(logger, cfg.RoutePrefix, elements)
+	router := server.NewRouter(logger, cfg.RoutePrefix, store, reloadFn)
 	if err := server.Run(ctx, cfg.ListenAddr, router, logger); err != nil {
 		return fmt.Errorf("server: %w", err)
 	}

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gi8lino/randomapi/internal/data"
-	"github.com/gi8lino/randomapi/internal/handlers"
+	"github.com/gi8lino/randomapi/internal/handler"
 )
 
 // NewRouter creates and wires the HTTP mux with handlers and middleware;
@@ -13,23 +13,26 @@ import (
 func NewRouter(
 	logger *slog.Logger,
 	routePrefix string,
-	elements data.Elements,
+	store *data.ElementsStore,
+	reloadFn func() error,
 ) http.Handler {
-	root := http.NewServeMux()
+	mux := http.NewServeMux()
 
 	// Health checks.
-	root.Handle("GET /healthz", handlers.Healthz())
-	root.Handle("POST /healthz", handlers.Healthz())
+	mux.Handle("GET /healthz", handler.Healthz())
+	mux.Handle("POST /healthz", handler.Healthz())
 
 	// Random element endpoint.
-	root.Handle("GET /random", handlers.RandomElement(elements, logger))
+	mux.Handle("GET /random", handler.RandomElement(store, logger))
 	// Element by index endpoint.
-	root.Handle("GET /index/{nr}", handlers.IndexElement(elements, logger))
+	mux.Handle("GET /index/{nr}", handler.IndexElement(store, logger))
+	// Data reload endpoint.
+	mux.Handle("POST /-/reload", handler.ReloadHandler(reloadFn, logger))
 
 	// Mount the whole app under the prefix if provided.
-	var handler http.Handler = root
+	var handler http.Handler = mux
 	if routePrefix != "" {
-		handler = mountUnderPrefix(root, routePrefix)
+		handler = mountUnderPrefix(mux, routePrefix)
 	}
 
 	return handler
