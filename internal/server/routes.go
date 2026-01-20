@@ -15,7 +15,6 @@ func NewRouter(
 	routePrefix string,
 	elements data.Elements,
 ) http.Handler {
-	// Inner mux registers canonical routes rooted at "/".
 	root := http.NewServeMux()
 
 	// Health checks.
@@ -24,6 +23,8 @@ func NewRouter(
 
 	// Random element endpoint.
 	root.Handle("GET /random", handlers.RandomElement(elements, logger))
+	// Element by index endpoint.
+	root.Handle("GET /index/{nr}", handlers.IndexElement(elements, logger))
 
 	// Mount the whole app under the prefix if provided.
 	var handler http.Handler = root

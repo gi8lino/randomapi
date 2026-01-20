@@ -13,8 +13,11 @@ Use it to serve:
 The service loads a JSON file at startup and exposes:
 
 - `GET /random` → **one random element** from the JSON array
+- `GET /index/{nr}` → **element at index** `{nr}` (0-based)
 - `GET /healthz` → `"ok"` for liveness
 - Optional `--route-prefix` support (e.g. `/api`)
+
+Even in randomapi, sometimes you need not to be random.
 
 > The sample `examples/jokes.json` is borrowed from the excellent
 > [https://github.com/15Dkatz/official_joke_api](https://github.com/15Dkatz/official_joke_api)
@@ -29,7 +32,7 @@ Flags always take precedence over env vars.
 | Flag               | Type   | Default          | Description                                                                 |
 | ------------------ | ------ | ---------------- | --------------------------------------------------------------------------- |
 | `--data-path`      | string | `/app/data.json` | Path to a JSON file containing a **JSON array** (any element type allowed). |
-| `--listen-address` | string | `:8080`          | HTTP listen address for `/random` and `/healthz`.                           |
+| `--listen-address` | string | `:8080`          | HTTP listen address for `/random`, `/index/{nr}`, and `/healthz`.           |
 | `--route-prefix`   | string | _(empty)_        | Optional URL prefix to mount all endpoints under (e.g. `/api`).             |
 | `--log-format`     | string | `text`           | Logging format: `text` or `json`.                                           |
 | `--debug`          | bool   | `false`          | Enable debug mode.                                                          |
@@ -83,6 +86,21 @@ If `--route-prefix=/api` is used, the endpoint becomes:
 
 ```bash
 GET /api/random
+```
+
+### `GET /index/{nr}`
+
+Returns the element at the given **0-based** index.
+
+```bash
+curl http://localhost:8080/index/0
+# → {"type":"general","setup":"...","punchline":"..."}
+```
+
+If `--route-prefix=/api` is used, the endpoint becomes:
+
+```bash
+GET /api/index/0
 ```
 
 ### `GET /healthz`

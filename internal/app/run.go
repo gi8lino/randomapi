@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -36,11 +37,23 @@ func Run(ctx context.Context, version string, argv []string, output io.Writer) e
 	// Setup logger
 	logger := logging.SetupLogger(cfg.LogFormat, cfg.Debug, output)
 
+	// Record any CLI overrides to aid debugging.
+	if len(cfg.OverriddenValues) > 0 {
+		logger.Info(
+			"CLI Overrides",
+			"overrides", cfg.OverriddenValues,
+		)
+	}
+
 	// Load data elements from JSON file
 	elements, err := data.LoadElements(cfg.DataPath)
 	if err != nil {
 		return fmt.Errorf("load elements: %w", err)
 	}
+	if len(elements) == 0 {
+		return errors.New("no elements available")
+	}
+
 	logger.Debug("loaded elements", "count", len(elements))
 
 	// Create server and run forever

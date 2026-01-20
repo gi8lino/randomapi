@@ -85,6 +85,29 @@ func TestNewRouter(t *testing.T) {
 		assert.True(t, validBodies[body], "unexpected body: %q", body)
 	})
 
+	t.Run("GET /index/{nr} returns element at index", func(t *testing.T) {
+		t.Parallel()
+
+		elements := data.Elements{
+			[]byte(`{"msg":"first"}`),
+			[]byte(`{"msg":"second"}`),
+		}
+
+		router := server.NewRouter(logger, "", elements)
+
+		req := httptest.NewRequest(http.MethodGet, "/index/1", nil)
+		rec := httptest.NewRecorder()
+
+		router.ServeHTTP(rec, req)
+
+		res := rec.Result()
+		defer res.Body.Close() // nolint:errcheck
+
+		require.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
+		assert.Equal(t, `{"msg":"second"}`, strings.TrimSpace(rec.Body.String()))
+	})
+
 	t.Run("route prefix applied", func(t *testing.T) {
 		t.Parallel()
 
@@ -113,6 +136,22 @@ func TestNewRouter(t *testing.T) {
 			t.Parallel()
 
 			req := httptest.NewRequest(http.MethodGet, "/api/random", nil)
+			rec := httptest.NewRecorder()
+
+			router.ServeHTTP(rec, req)
+
+			res := rec.Result()
+			defer res.Body.Close() // nolint:errcheck
+
+			require.Equal(t, http.StatusOK, res.StatusCode)
+			assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
+			assert.Equal(t, `"value"`, strings.TrimSpace(rec.Body.String()))
+		})
+
+		t.Run("index under prefix", func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequest(http.MethodGet, "/api/index/0", nil)
 			rec := httptest.NewRecorder()
 
 			router.ServeHTTP(rec, req)

@@ -2,19 +2,15 @@ package handlers
 
 import (
 	"log/slog"
-	"math/rand"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/gi8lino/randomapi/internal/data"
 )
 
-// rnd is a local pseudo-random number generator seeded once at startup.
-var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
-
-// RandomElement returns a handler that responds with a single random JSON element
-// from the provided in-memory list.
-func RandomElement(
+// IndexElement returns a handler that responds with the JSON element at the
+// provided index in the in-memory list.
+func IndexElement(
 	elements data.Elements,
 	logger *slog.Logger,
 ) http.HandlerFunc {
@@ -26,8 +22,21 @@ func RandomElement(
 		}
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		elem := elements[rnd.Intn(len(elements))]
-		logger.Debug("random element", "element", string(elem))
+		rawIndex := r.PathValue("nr")
+		idx, err := strconv.Atoi(rawIndex)
+		if err != nil || idx < 0 {
+			logger.Warn("invalid index", "index", rawIndex, "error", err)
+			http.Error(w, "invalid index", http.StatusBadRequest)
+			return
+		}
+		if idx >= len(elements) {
+			logger.Warn("index out of range", "index", idx, "max", len(elements)-1)
+			http.Error(w, "index out of range", http.StatusBadRequest)
+			return
+		}
+
+		elem := elements[idx]
+		logger.Debug("index element", "index", idx, "element", string(elem))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

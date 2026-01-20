@@ -12,11 +12,12 @@ import (
 
 // Config holds all application configuration.
 type Config struct {
-	ListenAddr  string            // HTTP bind address (e.g. ":8080")
-	LogFormat   logging.LogFormat // Log output format (text or json)
-	Debug       bool              // Enable debug mode
-	RoutePrefix string            // Canonical path prefix ("" or "/random-api")
-	DataPath    string            // Path to JSON file with elements
+	ListenAddr       string            // HTTP bind address (e.g. ":8080")
+	LogFormat        logging.LogFormat // Log output format (text or json)
+	Debug            bool              // Enable debug mode
+	RoutePrefix      string            // Canonical path prefix ("" or "/random-api")
+	DataPath         string            // Path to JSON file with elements
+	OverriddenValues map[string]any    // Overridden values from environment
 }
 
 // ParseArgs parses CLI args into Config.
@@ -61,6 +62,7 @@ func ParseArgs(version string, args []string, out io.Writer) (Config, error) {
 	cfg.LogFormat = logging.LogFormat(*logFormat)
 	cfg.ListenAddr = (*listenAddr).String()
 	cfg.DataPath = *dataPath
+	cfg.OverriddenValues = tf.OverriddenValues()
 
 	return cfg, nil
 }
