@@ -33,8 +33,8 @@ func TestIndexElement(t *testing.T) {
 		req.SetPathValue("nr", "1")
 		w := httptest.NewRecorder()
 
-		handler := handler.IndexElement(store, logger)
-		handler.ServeHTTP(w, req)
+		h := handler.IndexElement(store, logger)
+		h.ServeHTTP(w, req)
 
 		res := w.Result()
 		defer res.Body.Close() // nolint:errcheck
@@ -56,13 +56,13 @@ func TestIndexElement(t *testing.T) {
 		req.SetPathValue("nr", "nope")
 		w := httptest.NewRecorder()
 
-		handler := handler.IndexElement(store, logger)
-		handler.ServeHTTP(w, req)
+		h := handler.IndexElement(store, logger)
+		h.ServeHTTP(w, req)
 
 		res := w.Result()
 		defer res.Body.Close() // nolint:errcheck
 
-		assert.Equal(t, http.StatusNotFound, res.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 		assert.Equal(t, "invalid index\n", w.Body.String())
 	})
 
@@ -78,13 +78,13 @@ func TestIndexElement(t *testing.T) {
 		req.SetPathValue("nr", "3")
 		w := httptest.NewRecorder()
 
-		handler := handler.IndexElement(store, logger)
-		handler.ServeHTTP(w, req)
+		h := handler.IndexElement(store, logger)
+		h.ServeHTTP(w, req)
 
 		res := w.Result()
 		defer res.Body.Close() // nolint:errcheck
 
-		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+		assert.Equal(t, http.StatusNotFound, res.StatusCode)
 		assert.Equal(t, "index out of range\n", w.Body.String())
 	})
 
@@ -97,8 +97,8 @@ func TestIndexElement(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/index/0", nil)
 		w := httptest.NewRecorder()
 
-		handler := handler.IndexElement(store, logger)
-		handler.ServeHTTP(w, req)
+		h := handler.IndexElement(store, logger)
+		h.ServeHTTP(w, req)
 
 		res := w.Result()
 		defer res.Body.Close() // nolint:errcheck

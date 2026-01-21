@@ -31,9 +31,8 @@ func TestRandomElement(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/random", nil)
 		w := httptest.NewRecorder()
-		handler
-		handler := handlers.RandomElement(store, logger)
-		handler.ServeHTTP(w, req)
+		h := handler.RandomElement(store, logger)
+		h.ServeHTTP(w, req)
 
 		res := w.Result()
 		defer res.Body.Close() // nolint:errcheck
@@ -59,10 +58,10 @@ func TestRandomElement(t *testing.T) {
 		store := data.NewElementsStore(elements)
 
 		req := httptest.NewRequest(http.MethodGet, "/random", nil)
-		w := httptehandlercorder()
+		w := httptest.NewRecorder()
 
-		handler := handlers.RandomElement(store, logger)
-		handler.ServeHTTP(w, req)
+		h := handler.RandomElement(store, logger)
+		h.ServeHTTP(w, req)
 
 		res := w.Result()
 		defer res.Body.Close() // nolint:errcheck

@@ -24,7 +24,7 @@ func TestNewRouter(t *testing.T) {
 
 		elements := data.Elements{} // not used by health handler
 		store := data.NewElementsStore(elements)
-		router := server.NewRouter(logger, "", store)
+		router := server.NewRouter(logger, "", store, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 		rec := httptest.NewRecorder()
@@ -43,7 +43,7 @@ func TestNewRouter(t *testing.T) {
 
 		elements := data.Elements{}
 		store := data.NewElementsStore(elements)
-		router := server.NewRouter(logger, "", store)
+		router := server.NewRouter(logger, "", store, nil)
 
 		req := httptest.NewRequest(http.MethodPost, "/healthz", nil)
 		rec := httptest.NewRecorder()
@@ -66,7 +66,7 @@ func TestNewRouter(t *testing.T) {
 		}
 
 		store := data.NewElementsStore(elements)
-		router := server.NewRouter(logger, "", store)
+		router := server.NewRouter(logger, "", store, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/random", nil)
 		rec := httptest.NewRecorder()
@@ -97,7 +97,7 @@ func TestNewRouter(t *testing.T) {
 		}
 
 		store := data.NewElementsStore(elements)
-		router := server.NewRouter(logger, "", store)
+		router := server.NewRouter(logger, "", store, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/index/1", nil)
 		rec := httptest.NewRecorder()
@@ -120,7 +120,7 @@ func TestNewRouter(t *testing.T) {
 		}
 
 		store := data.NewElementsStore(elements)
-		router := server.NewRouter(logger, "/api", store)
+		router := server.NewRouter(logger, "/api", store, nil)
 
 		t.Run("health under prefix", func(t *testing.T) {
 			t.Parallel()

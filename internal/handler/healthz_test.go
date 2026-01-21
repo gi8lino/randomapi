@@ -11,12 +11,12 @@ import (
 func TestHealthz(t *testing.T) {
 	t.Parallel()
 
-	handler := Healthz()
+	h := Healthz()
 
 	req := httptest.NewRequest("GET", "/healthz", nil)
 	rec := httptest.NewRecorder()
 
-	handler.ServeHTTP(rec, req)
+	h.ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusOK, rec.Code, "Expected status code 200")
 	assert.Equal(t, "ok", rec.Body.String(), "Expected response body 'ok'")
