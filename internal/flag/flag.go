@@ -5,7 +5,7 @@ import (
 	"net"
 
 	"github.com/gi8lino/randomapi/internal/logging"
-	"github.com/gi8lino/randomapi/internal/server"
+	"github.com/gi8lino/randomapi/internal/routes"
 
 	"github.com/containeroo/tinyflags"
 )
@@ -31,7 +31,7 @@ func ParseArgs(version string, args []string, out io.Writer) (Config, error) {
 	// Server
 	tf.StringVar(&cfg.RoutePrefix, "route-prefix", "", "Path prefix to mount the app (e.g., /random-api). Empty = root.").
 		Finalize(func(input string) string {
-			return server.NormalizeRoutePrefix(input)
+			return routes.NormalizeRoutePrefix(input)
 		}).
 		Placeholder("PATH").
 		Value()

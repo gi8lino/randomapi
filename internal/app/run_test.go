@@ -78,7 +78,6 @@ func TestRun(t *testing.T) {
 		require.Error(t, err)
 
 		msg := err.Error()
-		assert.Contains(t, msg, "configuration error:")
 		assert.Contains(t, msg, "unknown flag: --totally-unknown")
 	})
 

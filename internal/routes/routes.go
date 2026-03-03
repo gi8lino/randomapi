@@ -1,4 +1,4 @@
-package server
+package routes
 
 import (
 	"log/slog"
@@ -17,13 +17,10 @@ func NewRouter(
 ) http.Handler {
 	root := http.NewServeMux()
 
-	// Health checks.
 	root.Handle("GET /healthz", handlers.Healthz())
 	root.Handle("POST /healthz", handlers.Healthz())
 
-	// Random element endpoint.
 	root.Handle("GET /random", handlers.RandomElement(elements, logger))
-	// Element by index endpoint.
 	root.Handle("GET /index/{nr}", handlers.IndexElement(elements, logger))
 
 	// Mount the whole app under the prefix if provided.

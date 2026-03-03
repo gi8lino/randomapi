@@ -1,4 +1,4 @@
-package server_test
+package routes_test
 
 import (
 	"log/slog"
@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/gi8lino/randomapi/internal/data"
-	"github.com/gi8lino/randomapi/internal/server"
+	"github.com/gi8lino/randomapi/internal/routes"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +23,7 @@ func TestNewRouter(t *testing.T) {
 		t.Parallel()
 
 		elements := data.Elements{} // not used by health handler
-		router := server.NewRouter(logger, "", elements)
+		router := routes.NewRouter(logger, "", elements)
 
 		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 		rec := httptest.NewRecorder()
@@ -41,7 +41,7 @@ func TestNewRouter(t *testing.T) {
 		t.Parallel()
 
 		elements := data.Elements{}
-		router := server.NewRouter(logger, "", elements)
+		router := routes.NewRouter(logger, "", elements)
 
 		req := httptest.NewRequest(http.MethodPost, "/healthz", nil)
 		rec := httptest.NewRecorder()
@@ -63,7 +63,7 @@ func TestNewRouter(t *testing.T) {
 			[]byte(`{"msg":"second"}`),
 		}
 
-		router := server.NewRouter(logger, "", elements)
+		router := routes.NewRouter(logger, "", elements)
 
 		req := httptest.NewRequest(http.MethodGet, "/random", nil)
 		rec := httptest.NewRecorder()
@@ -93,7 +93,7 @@ func TestNewRouter(t *testing.T) {
 			[]byte(`{"msg":"second"}`),
 		}
 
-		router := server.NewRouter(logger, "", elements)
+		router := routes.NewRouter(logger, "", elements)
 
 		req := httptest.NewRequest(http.MethodGet, "/index/1", nil)
 		rec := httptest.NewRecorder()
@@ -115,7 +115,7 @@ func TestNewRouter(t *testing.T) {
 			[]byte(`"value"`),
 		}
 
-		router := server.NewRouter(logger, "/api", elements)
+		router := routes.NewRouter(logger, "/api", elements)
 
 		t.Run("health under prefix", func(t *testing.T) {
 			t.Parallel()
