@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	github.com/containeroo/httpgrace v0.0.5
-	github.com/containeroo/tinyflags v0.0.65
+	github.com/containeroo/tinyflags v0.0.66
 	github.com/stretchr/testify v1.11.1
 )
 
