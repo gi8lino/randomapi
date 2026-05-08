@@ -78,7 +78,7 @@ func TestRun(t *testing.T) {
 		require.Error(t, err)
 
 		msg := err.Error()
-		assert.Contains(t, msg, "unknown flag: --totally-unknown")
+		assert.Contains(t, msg, "unknown flag --totally-unknown")
 	})
 
 	t.Run("Missing data file surfaces load error", func(t *testing.T) {
