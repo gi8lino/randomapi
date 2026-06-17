@@ -5,9 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/gi8lino/randomapi/internal/data"
@@ -22,8 +19,8 @@ import (
 // Run is the main function of the application.
 func Run(ctx context.Context, version string, argv []string, output io.Writer) error {
 	// Create a new context that listens for interrupt signals
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
-	defer cancel()
+	ctx, stop := server.SignalContext(ctx)
+	defer stop()
 
 	// Parse command-line flags
 	flags, err := flag.ParseArgs(version, argv, output)
