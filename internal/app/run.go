@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/gi8lino/randomapi/internal/data"
 	"github.com/gi8lino/randomapi/internal/flag"
@@ -17,33 +16,28 @@ import (
 )
 
 // Run is the main function of the application.
-func Run(ctx context.Context, version string, argv []string, output io.Writer) error {
-	// Create a new context that listens for interrupt signals
-	ctx, stop := server.SignalContext(ctx)
-	defer stop()
-
+func Run(ctx context.Context, version string, argv []string, stdOut, stdErr io.Writer) error {
 	// Parse command-line flags
-	flags, err := flag.ParseArgs(version, argv, output)
+	flags, err := flag.ParseArgs(version, argv, stdOut)
+	if err != nil {
+		if tinyflags.IsHelpRequested(err) || tinyflags.IsVersionRequested(err) {
+			_, _ = fmt.Fprint(stdOut, err.Error())
+			return nil
+		}
+		_, _ = fmt.Fprint(stdErr, err.Error())
+		return err
+	}
 
-	logger := logging.SetupLogger(flags.LogFormat, flags.Debug, output)
-
-	logger.Info(
+	logger := logging.SetupLogger(flags.LogFormat, flags.Debug, stdOut)
+	setupLog := logger.With("component", "setup")
+	setupLog.Info(
 		"Starting randomAPI",
 		"version", version,
 	)
 
-	if err != nil {
-		if tinyflags.IsHelpRequested(err) || tinyflags.IsVersionRequested(err) {
-			_, _ = fmt.Fprint(output, err.Error())
-			return nil
-		}
-		logger.Error("Configuration error", "error", err)
-		return err
-	}
-
 	// Record any CLI overrides to aid debugging.
 	if len(flags.OverriddenValues) > 0 {
-		logger.Info(
+		setupLog.Info(
 			"cli overrides",
 			"overrides", flags.OverriddenValues,
 		)
@@ -52,25 +46,31 @@ func Run(ctx context.Context, version string, argv []string, output io.Writer) e
 	// Load data elements from JSON file
 	elements, err := data.LoadElements(flags.DataPath)
 	if err != nil {
-		logger.Error("load elements", "path", flags.DataPath, "err", err)
-		return fmt.Errorf("load elements: %w", err)
+		setupLog.Error("load elements", "path", flags.DataPath, "err", err)
+		return err
 	}
 	if len(elements) == 0 {
-		err := errors.New("no elements available")
-		logger.Error("no elements available after load", "path", flags.DataPath)
+		setupLog.Error("no elements available after load", "path", flags.DataPath)
+		return errors.New("no elements available")
+
+	}
+	setupLog.Debug("loaded elements", "count", len(elements))
+
+	// HTTP server
+	serverLog := logger.With("component", "server")
+	router := routes.NewRouter(
+		serverLog,
+		flags.RoutePrefix,
+		elements,
+	)
+
+	ctx, stop := server.SignalContext(ctx)
+	defer stop()
+
+	if err := server.Run(ctx, flags.ListenAddr, router, serverLog); err != nil {
+		setupLog.Error("server run", "listen_address", flags.ListenAddr, "error", err)
 		return err
 	}
 
-	logger.Debug("loaded elements", "count", len(elements))
-
-	// Create server and run forever
-	router := routes.NewRouter(logger, flags.RoutePrefix, elements)
-	if err := server.Run(ctx, flags.ListenAddr, router, logger); err != nil {
-		logger.Error("server run", "listen_address", flags.ListenAddr, "err", err)
-		return fmt.Errorf("server: %w", err)
-	}
-
-	// Small grace for prober loop to finish a tick if shutting down extremely fast
-	time.Sleep(100 * time.Millisecond)
 	return nil
 }

@@ -34,8 +34,8 @@ func TestRun(t *testing.T) {
 			"--listen-address=127.0.0.1:0", // avoid port conflicts
 		}
 
-		var out bytes.Buffer
-		err := app.Run(ctx, "v1", args, &out)
+		var out, errOut bytes.Buffer
+		err := app.Run(ctx, "v1", args, &out, &errOut)
 		require.NoError(t, err)
 	})
 
@@ -45,8 +45,8 @@ func TestRun(t *testing.T) {
 		ctx, cancel := context.WithTimeout(t.Context(), time.Second)
 		defer cancel()
 
-		var out bytes.Buffer
-		err := app.Run(ctx, "v1.2.3", []string{"--help"}, &out)
+		var out, errOut bytes.Buffer
+		err := app.Run(ctx, "v1.2.3", []string{"--help"}, &out, &errOut)
 		require.NoError(t, err)
 
 		// tinyflags prints usage text into the writer via err.Error().
@@ -59,8 +59,8 @@ func TestRun(t *testing.T) {
 		ctx, cancel := context.WithTimeout(t.Context(), time.Second)
 		defer cancel()
 
-		var out bytes.Buffer
-		err := app.Run(ctx, "v9.8.7", []string{"--version"}, &out)
+		var out, errOut bytes.Buffer
+		err := app.Run(ctx, "v9.8.7", []string{"--version"}, &out, &errOut)
 		require.NoError(t, err)
 
 		// tinyflags version error string should include the version.
@@ -73,12 +73,13 @@ func TestRun(t *testing.T) {
 		ctx, cancel := context.WithTimeout(t.Context(), time.Second)
 		defer cancel()
 
-		var out bytes.Buffer
-		err := app.Run(ctx, "vX", []string{"--totally-unknown"}, &out)
+		var out, errOut bytes.Buffer
+		err := app.Run(ctx, "vX", []string{"--totally-unknown"}, &out, &errOut)
 		require.Error(t, err)
 
 		msg := err.Error()
 		assert.Contains(t, msg, "unknown flag --totally-unknown")
+		assert.Contains(t, errOut.String(), "unknown flag --totally-unknown")
 	})
 
 	t.Run("Missing data file surfaces load error", func(t *testing.T) {
@@ -96,12 +97,12 @@ func TestRun(t *testing.T) {
 			"--listen-address=127.0.0.1:0",
 		}
 
-		var out bytes.Buffer
-		err := app.Run(ctx, "v1", args, &out)
+		var out, errOut bytes.Buffer
+		err := app.Run(ctx, "v1", args, &out, &errOut)
 		require.Error(t, err)
 
 		msg := err.Error()
-		assert.Contains(t, msg, "load elements: read data:")
+		assert.Contains(t, msg, "read data:")
 		assert.Contains(t, msg, dataPath)
 	})
 }
