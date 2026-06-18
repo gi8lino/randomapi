@@ -21,10 +21,10 @@ func Run(ctx context.Context, version string, argv []string, stdOut, stdErr io.W
 	flags, err := flag.ParseArgs(version, argv, stdOut)
 	if err != nil {
 		if tinyflags.IsHelpRequested(err) || tinyflags.IsVersionRequested(err) {
-			_, _ = fmt.Fprint(stdOut, err.Error())
+			_, _ = fmt.Fprint(stdOut, err)
 			return nil
 		}
-		_, _ = fmt.Fprint(stdErr, err.Error())
+		_, _ = fmt.Fprintln(stdErr, err)
 		return err
 	}
 
