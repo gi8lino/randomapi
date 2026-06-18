@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/containeroo/httpprefix"
 	"github.com/gi8lino/randomapi/internal/data"
 	"github.com/gi8lino/randomapi/internal/handlers"
 )
@@ -26,7 +27,7 @@ func NewRouter(
 	// Mount the whole app under the prefix if provided.
 	var handler http.Handler = root
 	if routePrefix != "" {
-		handler = mountUnderPrefix(root, routePrefix)
+		handler = httpprefix.MountUnderPrefix(root, routePrefix)
 	}
 
 	return handler
