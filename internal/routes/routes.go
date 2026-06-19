@@ -24,11 +24,5 @@ func NewRouter(
 	root.Handle("GET /random", handlers.RandomElement(elements, logger))
 	root.Handle("GET /index/{nr}", handlers.IndexElement(elements, logger))
 
-	// Mount the whole app under the prefix if provided.
-	var handler http.Handler = root
-	if routePrefix != "" {
-		handler = httpprefix.MountUnderPrefix(root, routePrefix)
-	}
-
-	return handler
+	return httpprefix.MountUnderPrefix(root, routePrefix)
 }
