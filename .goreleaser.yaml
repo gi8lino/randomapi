@@ -1,8 +1,11 @@
 ---
 project_name: randomapi
+version: 2
+
 before:
   hooks:
     - go mod tidy
+
 builds:
   - id: randomapi
     main: ./cmd/randomapi/main.go
@@ -14,54 +17,26 @@ builds:
       - -s -w
       - -X main.Version={{ .Tag }}
       - -X main.Commit={{ .FullCommit }}
-dockers:
-  - ids: [randomapi] # tie this docker image to the 'randomapi' build
-    use: buildx
+
+dockers_v2:
+  - id: randomapi
+    ids:
+      - randomapi
+    labels:
+      org.opencontainers.image.created: "{{ .Date }}"
+      org.opencontainers.image.description: "Tiny HTTP microservice that returns one random element from a JSON array."
+      org.opencontainers.image.licenses: "GPL-3.0-only"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.source: "https://github.com/gi8lino/randomapi"
+      org.opencontainers.image.title: "{{ .ProjectName }}"
+      org.opencontainers.image.url: "https://github.com/gi8lino/randomapi"
+      org.opencontainers.image.version: "{{ .Tag }}"
     dockerfile: Dockerfile.goreleaser
-    image_templates:
-      - ghcr.io/gi8lino/randomapi:{{ .Tag }}-amd64
-    build_flag_templates:
-      - --pull
-      - --platform=linux/amd64
-      - --label=org.opencontainers.image.title={{ .ProjectName }}
-      - --label=org.opencontainers.image.description={{ .ProjectName }}
-      - --label=org.opencontainers.image.url=https://github.com/gi8lino/randomapi
-      - --label=org.opencontainers.image.source=https://github.com/gi8lino/randomapi
-      - --label=org.opencontainers.image.version={{ .Version }}
-      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
-      - --label=org.opencontainers.image.revision={{ .FullCommit }}
-      - --label=org.opencontainers.image.licenses="GNU General Public License v3.0"
-
-  - ids: [randomapi]
-    use: buildx
-    dockerfile: Dockerfile.goreleaser
-    image_templates:
-      - ghcr.io/gi8lino/randomapi:{{ .Tag }}-arm64
-    build_flag_templates:
-      - --pull
-      - --platform=linux/arm64
-      - --label=org.opencontainers.image.title={{ .ProjectName }}
-      - --label=org.opencontainers.image.description={{ .ProjectName }}
-      - --label=org.opencontainers.image.url=https://github.com/gi8lino/randomapi
-      - --label=org.opencontainers.image.source=https://github.com/gi8lino/randomapi
-      - --label=org.opencontainers.image.version={{ .Version }}
-      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
-      - --label=org.opencontainers.image.revision={{ .FullCommit }}
-      - --label=org.opencontainers.image.licenses="GNU General Public License v3.0"
-
-docker_manifests:
-  - name_template: ghcr.io/gi8lino/randomapi:{{ .Tag }}
-    image_templates:
-      - ghcr.io/gi8lino/randomapi:{{ .Tag }}-amd64
-      - ghcr.io/gi8lino/randomapi:{{ .Tag }}-arm64
-  - name_template: ghcr.io/gi8lino/randomapi:latest
-    image_templates:
-      - ghcr.io/gi8lino/randomapi:{{ .Tag }}-amd64
-      - ghcr.io/gi8lino/randomapi:{{ .Tag }}-arm64
-
-archives:
-  - formats: ["tar.gz"]
-
-checksum:
-  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
-  algorithm: sha256
+    images:
+      - ghcr.io/gi8lino/randomapi
+    tags:
+      - "{{ .Tag }}"
+      - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64

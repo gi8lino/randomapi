@@ -1,39 +1,57 @@
-# syntax=docker/dockerfile:1.25
-FROM golang:1.26-alpine AS builder
+# Build the manager binary
+FROM golang:1.26 AS prep
 
 ARG TARGETOS
 ARG TARGETARCH
 ARG VERSION=dev
 ARG COMMIT=none
 ARG LDFLAGS="-s -w -X main.Version=${VERSION} -X main.Commit=${COMMIT}"
+
 ENV CGO_ENABLED=0
 
 WORKDIR /workspace
-COPY go.mod go.sum ./
+
+# Copy the Go module manifests first so dependency downloads can be cached.
+COPY go.mod go.mod
+COPY go.sum go.sum
+
 RUN go mod download
 
-COPY cmd/randomapi/main.go cmd/randomapi/main.go
+# Copy the Go source.
+COPY cmd/ cmd/
 COPY internal/ internal
 
-RUN GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags="${LDFLAGS}" -o /out/randomapi ./cmd/randomapi/main.go
+# Build the binary.
+# TARGETARCH is intentionally allowed to be empty for regular Docker builds,
+# so Go uses the builder container's default architecture.
+RUN GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
+  go build -ldflags="$LDFLAGS" -a -o randomapi ./cmd/main.go
 
 RUN mkdir -p /outfs/work /outfs/tmp \
-  # Change group ownership of /work and /tmp to GID 0 (root group),
-  # because OpenShift assigns containers a random UID but always includes them in group 0.
+  # Change group ownership to GID 0 (root group),
+  # because OpenShift assigns containers a random UID but keeps them compatible
+  # with root-group-owned writable paths.
   && chgrp -R 0 /outfs/work /outfs/tmp \
-  # Give group 0 read/write/execute (X only applies to dirs or already-executable files).
-  # This makes the dirs writable by arbitrary UIDs in group 0.
+  # Give group 0 read/write/execute permissions.
+  # X only applies to directories or files that are already executable.
   && chmod -R g+rwX /outfs/work /outfs/tmp \
-  # Set the setgid bit on the dirs so that any new files/dirs created inside
-  # will inherit group 0 instead of the creator's primary group.
+  # Set the setgid bit so new files/directories inherit group 0.
   && chmod g+s /outfs/work /outfs/tmp
 
+# Use distroless as minimal base image to package the manager binary.
+# Refer to https://github.com/GoogleContainerTools/distroless for more details.
 FROM gcr.io/distroless/static:nonroot
-COPY --from=builder /out/randomapi /randomapi
-COPY --from=builder /outfs/work /work
-COPY --from=builder /outfs/tmp  /tmp
+
+COPY --from=prep /workspace/randomapi /randomapi
+COPY --from=prep /outfs/work /work
+COPY --from=prep /outfs/tmp /tmp
+
 ENV HOME=/tmp
 WORKDIR /work
-USER 65532:65532
-ENTRYPOINT ["/randomapi"]
 
+# Run as a non-root user by default.
+# Use GID 0 so the process can write to root-group-owned writable paths,
+# which keeps the image compatible with OpenShift's arbitrary UID model.
+USER 65532:0
+
+ENTRYPOINT ["/randomapi"]
