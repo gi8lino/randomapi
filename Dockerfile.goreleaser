@@ -2,26 +2,20 @@
 
 FROM --platform=$BUILDPLATFORM alpine:3.24 AS prep
 
-RUN mkdir -p /outfs/work /outfs/tmp \
-  # Change group ownership to GID 0 (root group),
-  # because OpenShift assigns containers a random UID but keeps them compatible
-  # with root-group-owned writable paths.
-  && chgrp -R 0 /outfs/work /outfs/tmp \
-  # Give group 0 read/write/execute permissions.
-  # X only applies to directories or files that are already executable.
-  && chmod -R g+rwX /outfs/work /outfs/tmp \
-  # Set the setgid bit so new files/directories inherit group 0.
-  && chmod g+s /outfs/work /outfs/tmp
+# Create writable runtime directories owned by the root group.
+# The setgid bit keeps new files/directories in group 0, which supports
+# OpenShift's arbitrary UID model while still running as a non-root user.
+RUN install -d -o 0 -g 0 -m 2775 /outfs/work /outfs/tmp
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
+# Use distroless as minimal base image to package the manager binary.
+# Refer to https://github.com/GoogleContainerTools/distroless for more details.
 FROM gcr.io/distroless/static:nonroot
 
 ARG TARGETPLATFORM
 
 COPY ${TARGETPLATFORM}/randomapi /randomapi
-COPY --from=prep /outfs/work/. /work/
-COPY --from=prep /outfs/tmp/. /tmp/
+COPY --from=prep /outfs/work /work
+COPY --from=prep /outfs/tmp /tmp
 
 ENV HOME=/tmp
 WORKDIR /work

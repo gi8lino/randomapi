@@ -1,4 +1,6 @@
-# Build the manager binary
+# syntax=docker/dockerfile:1.25
+
+# Build the manager binary.
 FROM golang:1.26 AS prep
 
 ARG TARGETOS
@@ -15,28 +17,31 @@ WORKDIR /workspace
 COPY go.mod go.mod
 COPY go.sum go.sum
 
-RUN go mod download
+# Download modules before copying source files so source changes do not
+# invalidate the dependency cache layer.
+RUN --mount=type=cache,target=/go/pkg/mod \
+  go mod download
 
 # Copy the Go source.
 COPY cmd/ cmd/
-COPY internal/ internal
+COPY internal/ internal/
 
 # Build the binary.
-# TARGETARCH is intentionally allowed to be empty for regular Docker builds,
-# so Go uses the builder container's default architecture.
-RUN GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
-  go build -ldflags="$LDFLAGS" -a -o randomapi ./cmd/main.go
+# TARGETARCH defaults to the builder architecture for regular Docker builds,
+# but can be set by buildx for cross-platform builds.
+RUN --mount=type=cache,target=/go/pkg/mod \
+  --mount=type=cache,target=/root/.cache/go-build \
+  GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-$(go env GOARCH)} \
+  go build \
+  -ldflags="$LDFLAGS" \
+  -a \
+  -o randomapi \
+  ./cmd/randomapi
 
-RUN mkdir -p /outfs/work /outfs/tmp \
-  # Change group ownership to GID 0 (root group),
-  # because OpenShift assigns containers a random UID but keeps them compatible
-  # with root-group-owned writable paths.
-  && chgrp -R 0 /outfs/work /outfs/tmp \
-  # Give group 0 read/write/execute permissions.
-  # X only applies to directories or files that are already executable.
-  && chmod -R g+rwX /outfs/work /outfs/tmp \
-  # Set the setgid bit so new files/directories inherit group 0.
-  && chmod g+s /outfs/work /outfs/tmp
+# Create writable runtime directories owned by the root group.
+# The setgid bit keeps new files/directories in group 0, which supports
+# OpenShift's arbitrary UID model while still running as a non-root user.
+RUN install -d -o 0 -g 0 -m 2775 /outfs/work /outfs/tmp
 
 # Use distroless as minimal base image to package the manager binary.
 # Refer to https://github.com/GoogleContainerTools/distroless for more details.
