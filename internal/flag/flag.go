@@ -45,10 +45,18 @@ func ParseArgs(version string, args []string, out io.Writer) (Config, error) {
 		Value()
 
 	// Logging
-	logFormat := tf.String("log-format", "text", "Log format").
-		Choices("text", "json").
+	logFormat := tinyflags.Enum(
+		tf,
+		"log-format",
+		logging.LogFormatJSON,
+		"Log output format",
+		logging.LogFormatText,
+		logging.LogFormatJSON,
+	).
 		Short("l").
+		Placeholder("FORMAT").
 		Value()
+
 	tf.BoolVar(&cfg.Debug, "debug", false, "Enable debug mode.").
 		Short("d").
 		Value()
@@ -59,7 +67,7 @@ func ParseArgs(version string, args []string, out io.Writer) (Config, error) {
 	}
 
 	// Post-parse
-	cfg.LogFormat = logging.LogFormat(*logFormat)
+	cfg.LogFormat = *logFormat
 	cfg.ListenAddr = (*listenAddr).String()
 	cfg.DataPath = *dataPath
 	cfg.OverriddenValues = tf.OverriddenValues()
