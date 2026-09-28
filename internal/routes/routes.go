@@ -7,6 +7,7 @@ import (
 	"github.com/containeroo/httpprefix"
 	"github.com/gi8lino/randomapi/internal/data"
 	"github.com/gi8lino/randomapi/internal/handlers"
+	"github.com/gi8lino/randomapi/internal/route"
 )
 
 // NewRouter creates and wires the HTTP mux with handlers and middleware;
@@ -24,5 +25,5 @@ func NewRouter(
 	root.Handle("GET /random", handlers.RandomElement(elements, logger))
 	root.Handle("GET /index/{nr}", handlers.IndexElement(elements, logger))
 
-	return httpprefix.MountUnderPrefix(root, routePrefix)
+	return httpprefix.MountUnderPrefix(route.WithPrefix(root, routePrefix), routePrefix)
 }

@@ -163,5 +163,28 @@ func TestNewRouter(t *testing.T) {
 			assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 			assert.Equal(t, `"value"`, strings.TrimSpace(rec.Body.String()))
 		})
+
+		t.Run("paths outside prefix are not served", func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+			rec := httptest.NewRecorder()
+
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusNotFound, rec.Code)
+		})
+
+		t.Run("bare prefix redirects to slash", func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequest(http.MethodGet, "/api", nil)
+			rec := httptest.NewRecorder()
+
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusPermanentRedirect, rec.Code)
+			assert.Equal(t, "/api/", rec.Header().Get("Location"))
+		})
 	})
 }
