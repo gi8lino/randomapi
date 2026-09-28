@@ -21,7 +21,7 @@ func TestParseArgs(t *testing.T) {
 
 		// Defaults from flag.Config / ParseArgs
 		assert.Equal(t, "", cfg.RoutePrefix)
-		assert.Equal(t, "text", string(cfg.LogFormat))
+		assert.Equal(t, "json", string(cfg.LogFormat))
 		assert.Equal(t, ":8080", cfg.ListenAddr)
 		assert.Equal(t, "/app/data.json", cfg.DataPath)
 	})
