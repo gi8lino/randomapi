@@ -36,10 +36,10 @@ func Run(ctx context.Context, version string, argv []string, stdOut, stdErr io.W
 	)
 
 	// Record any CLI overrides to aid debugging.
-	if len(flags.OverriddenValues) > 0 {
+	if len(flags.Overrides) > 0 {
 		setupLog.Info(
 			"cli overrides",
-			"overrides", flags.OverriddenValues,
+			"overrides", flags.Overrides.Values(),
 		)
 	}
 
