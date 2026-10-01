@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/containeroo/httpprefix"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,16 +20,17 @@ func TestForRequest(t *testing.T) {
 	})
 
 	for _, prefix := range []string{"", "/api"} {
-		prefix := prefix
 		t.Run("prefix="+prefix, func(t *testing.T) {
 			t.Parallel()
 
-			handler := WithPrefix(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := httpprefix.MountUnderPrefix(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				_, _ = w.Write([]byte(ForRequest(r, "/index/1")))
 			}), prefix)
 
 			response := httptest.NewRecorder()
-			handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/", nil))
+			request := httptest.NewRequest(http.MethodGet, prefix+"/", nil)
+
+			handler.ServeHTTP(response, request)
 
 			assert.Equal(t, prefix+"/index/1", response.Body.String())
 		})
@@ -39,16 +41,17 @@ func TestRedirect(t *testing.T) {
 	t.Parallel()
 
 	for _, prefix := range []string{"", "/api"} {
-		prefix := prefix
 		t.Run("prefix="+prefix, func(t *testing.T) {
 			t.Parallel()
 
-			handler := WithPrefix(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := httpprefix.MountUnderPrefix(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				Redirect(w, r, "/random?format=json", http.StatusSeeOther)
 			}), prefix)
 
 			response := httptest.NewRecorder()
-			handler.ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/", nil))
+			request := httptest.NewRequest(http.MethodPost, prefix+"/", nil)
+
+			handler.ServeHTTP(response, request)
 
 			assert.Equal(t, http.StatusSeeOther, response.Code)
 			assert.Equal(t, prefix+"/random?format=json", response.Header().Get("Location"))
@@ -56,15 +59,22 @@ func TestRedirect(t *testing.T) {
 	}
 }
 
-func TestWithPrefixRewritesHandlerRedirect(t *testing.T) {
+func TestRedirectWithRedirectRewriting(t *testing.T) {
 	t.Parallel()
 
-	handler := WithPrefix(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/random", http.StatusPermanentRedirect)
-	}), "/api")
+	handler := httpprefix.MountUnderPrefixWithOptions(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			Redirect(w, r, "/random", http.StatusPermanentRedirect)
+		}),
+		"/api",
+		httpprefix.WithRedirectRewriting(),
+	)
 
 	response := httptest.NewRecorder()
-	handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/", nil))
+	handler.ServeHTTP(
+		response,
+		httptest.NewRequest(http.MethodGet, "/api/", nil),
+	)
 
 	assert.Equal(t, http.StatusPermanentRedirect, response.Code)
 	assert.Equal(t, "/api/random", response.Header().Get("Location"))
