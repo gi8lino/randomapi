@@ -11,7 +11,7 @@ import (
 	"github.com/gi8lino/randomapi/internal/logging"
 	"github.com/gi8lino/randomapi/internal/routes"
 
-	"github.com/containeroo/httpgrace/server"
+	server "github.com/containeroo/httpkit/server"
 	"github.com/containeroo/tinyflags"
 )
 

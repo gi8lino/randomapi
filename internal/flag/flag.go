@@ -6,7 +6,7 @@ import (
 
 	"github.com/gi8lino/randomapi/internal/logging"
 
-	"github.com/containeroo/httpprefix"
+	httpprefix "github.com/containeroo/httpkit/prefix"
 	"github.com/containeroo/tinyflags"
 )
 
