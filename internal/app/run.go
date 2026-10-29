@@ -11,7 +11,8 @@ import (
 	"github.com/gi8lino/randomapi/internal/logging"
 	"github.com/gi8lino/randomapi/internal/routes"
 
-	server "github.com/containeroo/httpkit/server"
+	"github.com/containeroo/httpkit/grace"
+	"github.com/containeroo/httpkit/server"
 	"github.com/containeroo/tinyflags"
 )
 
@@ -64,10 +65,14 @@ func Run(ctx context.Context, version string, argv []string, stdOut, stdErr io.W
 		elements,
 	)
 
-	ctx, stop := server.SignalContext(ctx)
+	ctx, stop := grace.SignalContext(ctx)
 	defer stop()
 
-	if err := server.Run(ctx, flags.ListenAddr, router, serverLog); err != nil {
+	if err := server.Run(ctx, server.Listener{
+		Address: flags.ListenAddr,
+		Handler: router,
+		Logger:  serverLog,
+	}); err != nil {
 		setupLog.Error("server run", "listen_address", flags.ListenAddr, "error", err)
 		return err
 	}
