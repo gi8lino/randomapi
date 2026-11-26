@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/gi8lino/randomapi/internal/cli"
 	"github.com/gi8lino/randomapi/internal/data"
-	"github.com/gi8lino/randomapi/internal/flag"
 	"github.com/gi8lino/randomapi/internal/logging"
 	"github.com/gi8lino/randomapi/internal/routes"
 
@@ -19,7 +19,7 @@ import (
 // Run is the main function of the application.
 func Run(ctx context.Context, version string, argv []string, stdOut, stdErr io.Writer) error {
 	// Parse command-line flags
-	flags, err := flag.ParseArgs(version, argv, stdOut)
+	flags, err := cli.ParseArgs(version, argv, stdOut)
 	if err != nil {
 		if tinyflags.IsHelpRequested(err) || tinyflags.IsVersionRequested(err) {
 			_, _ = fmt.Fprint(stdOut, err)

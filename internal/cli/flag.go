@@ -1,4 +1,4 @@
-package flag
+package cli
 
 import (
 	"io"
@@ -10,8 +10,8 @@ import (
 	"github.com/containeroo/tinyflags"
 )
 
-// Config holds all application configuration.
-type Config struct {
+// Flags holds all application configuration.
+type Flags struct {
 	ListenAddr  string              // HTTP bind address (e.g. ":8080")
 	LogFormat   logging.LogFormat   // Log output format (text or json)
 	Debug       bool                // Enable debug mode
@@ -21,15 +21,14 @@ type Config struct {
 }
 
 // ParseArgs parses CLI args into Config.
-func ParseArgs(version string, args []string, out io.Writer) (Config, error) {
-	var cfg Config
+func ParseArgs(version string, args []string, out io.Writer) (flags Flags, err error) {
 	tf := tinyflags.NewFlagSet("random-api", tinyflags.ContinueOnError)
 	tf.Version(version)
 	tf.EnvPrefix("RANDOMAPI")
 	tf.SetOutput(out)
 
 	// Server
-	tf.StringVar(&cfg.RoutePrefix, "route-prefix", "", "Path prefix to mount the app (e.g., /random-api). Empty = root.").
+	tf.StringVar(&flags.RoutePrefix, "route-prefix", "", "Path prefix to mount the app (e.g., /random-api). Empty = root.").
 		Finalize(func(input string) string {
 			return httpprefix.NormalizeRoutePrefix(input)
 		}).
@@ -57,20 +56,20 @@ func ParseArgs(version string, args []string, out io.Writer) (Config, error) {
 		Placeholder("FORMAT").
 		Value()
 
-	tf.BoolVar(&cfg.Debug, "debug", false, "Enable debug mode.").
+	tf.BoolVar(&flags.Debug, "debug", false, "Enable debug mode.").
 		Short("d").
 		Value()
 
 	// Parse
 	if err := tf.Parse(args); err != nil {
-		return Config{}, err
+		return Flags{}, err
 	}
 
 	// Post-parse
-	cfg.LogFormat = *logFormat
-	cfg.ListenAddr = (*listenAddr).String()
-	cfg.DataPath = *dataPath
-	cfg.Overrides = tf.Overrides()
+	flags.LogFormat = *logFormat
+	flags.ListenAddr = (*listenAddr).String()
+	flags.DataPath = *dataPath
+	flags.Overrides = tf.Overrides()
 
-	return cfg, nil
+	return flags, nil
 }
